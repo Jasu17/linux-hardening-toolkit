@@ -4,7 +4,12 @@ echo "=== Linux Hardening Toolkit ==="
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+#Load modules
 source "$SCRIPT_DIR/modules/core/detect_distro.sh"
+source "$SCRIPT_DIR/modules/core/logger.sh"
+
+init_logger
+log_info "Starting hardening process"
 
 detect_distro
 echo "[+] Detected distro: $DISTRO"
