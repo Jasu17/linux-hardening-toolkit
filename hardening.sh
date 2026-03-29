@@ -34,3 +34,10 @@ case "$DISTRO_FAMILY" in
         exit 1
         ;;
 esac
+
+#SSH Hardening
+source "$SCRIPT_DIR/modules/ssh/ssh_hardening.sh"
+
+backup_ssh_config
+apply_ssh_hardening
+restart_ssh
