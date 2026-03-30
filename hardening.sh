@@ -7,6 +7,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 #Load modules
 source "$SCRIPT_DIR/modules/core/detect_distro.sh"
 source "$SCRIPT_DIR/modules/core/logger.sh"
+source "$SCRIPT_DIR/modules/ssh/ssh_hardening.sh"
+source "$SCRIPT_DIR/modules/firewall/firewall.sh"
+source "$SCRIPT_DIR/modules/sysctl/sysctl_hardening.sh"
 
 init_logger
 log_info "Starting hardening process"
@@ -36,8 +39,6 @@ case "$DISTRO_FAMILY" in
 esac
 
 #SSH Hardening
-source "$SCRIPT_DIR/modules/ssh/ssh_hardening.sh"
-
 install_ssh
 backup_ssh_config
 apply_ssh_hardening
@@ -46,3 +47,6 @@ restart_ssh
 
 # Firewall
 setup_firewall
+
+# Sysctl Hardening
+setup_sysctl
