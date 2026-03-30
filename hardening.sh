@@ -43,3 +43,6 @@ backup_ssh_config
 apply_ssh_hardening
 validate_ssh_config
 restart_ssh
+
+# Firewall
+setup_firewall
