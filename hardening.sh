@@ -10,6 +10,7 @@ source "$SCRIPT_DIR/modules/core/logger.sh"
 source "$SCRIPT_DIR/modules/ssh/ssh_hardening.sh"
 source "$SCRIPT_DIR/modules/firewall/firewall.sh"
 source "$SCRIPT_DIR/modules/sysctl/sysctl_hardening.sh"
+source "$SCRIPT_DIR/modules/services/services_hardening.sh"
 
 init_logger
 log_info "Starting hardening process"
@@ -50,3 +51,6 @@ setup_firewall
 
 # Sysctl Hardening
 setup_sysctl
+
+# Services Hardening
+setup_services
