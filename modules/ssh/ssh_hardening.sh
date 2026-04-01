@@ -79,3 +79,15 @@ restart_ssh(){
 
     log_info "SSH service restarted"
 }
+
+generate_ssh_keys(){
+    log_info "Checking SSH host keys..."
+
+    if [ ! -f /etc/ssh/ssh_host_rsa_key ]; then
+        log_warn "SSH host keys not found. Generating..."
+        run_cmd "sudo ssh-keygen -A"
+        log_info "SSH host keys generated"
+    else
+        log_info "SSH hostkeys already exist"
+    fi
+}

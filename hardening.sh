@@ -116,6 +116,7 @@ esac
 #SSH Hardening
 if [ "$RUN_SSH" = true ]; then
     install_ssh
+    generate_ssh_keys
     backup_ssh_config
     apply_ssh_hardening
     validate_ssh_config
