@@ -12,15 +12,15 @@ install_firewall(){
 
         case "$DISTRO_FAMILY" in
             arch)
-                sudo pacman -S --noconfirm ufw
+                run_cmd "sudo pacman -S --noconfirm ufw"
                 FIREWALL="ufw"
                 ;;
             debian)
-                sudo apt update && sudo apt install -y ufw
+                run_cmd "sudo apt update && sudo apt install -y ufw"
                 FIREWALL="ufw"
                 ;;
             rhel)
-                sudo dnf install -y firewalld
+                run_cmd "sudo dnf install -y firewalld"
                 FIREWALL="firewalld"
                 ;;
             *)
@@ -35,13 +35,13 @@ install_firewall(){
 configure_ufw(){
     log_info "Configuring UFW..."
 
-    sudo ufw default deny incomming
-    sudo ufw default allow outgoing
+    run_cmd "sudo ufw default deny incomming"
+    run_cmd "sudo ufw default allow outgoing"
 
     # Allow SSH
-    sudo ufw allow ssh
+    run_cmd "sudo ufw allow ssh"
 
-    sudo ufw --force enable
+    run_cmd "sudo ufw --force enable"
 
     log_info "UFW configured and enabled"
 }
@@ -49,13 +49,13 @@ configure_ufw(){
 configure_firewalld(){
     log_info "Configuring firewalld..."
 
-    sudo systemctl enable --now firewalld
+    run_cmd "sudo systemctl enable --now firewalld"
 
     # Allow SSH
-    sudo firewall-cmd --permanent --add-service=ssh
+    run_cmd "sudo firewall-cmd --permanent --add-service=ssh"
 
     # Reload rules
-    sudo firewall-cmd --reload
+    run_cmd "sudo firewall-cmd --reload"
 
     log_info "firewalld configured and running" 
 }

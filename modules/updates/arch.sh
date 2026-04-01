@@ -3,10 +3,8 @@
 update_arch(){
     log_info 'Updating Arch-basedd system...'
     
-    if ! sudo pacman -Syu --noconfirm;then
-        log_error "System update failed"
-        exit 1
-    fi
+    run_cmd "sudo pacman -Syu --noconfirm" \
+        || { log_error "System update failed"; exit 1; }
     
     log_info "System updated succesfully"
 }

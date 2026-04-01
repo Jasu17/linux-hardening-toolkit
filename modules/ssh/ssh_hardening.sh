@@ -11,13 +11,13 @@ install_ssh(){
     
     case "$DISTRO_FAMILY" in
         arch)
-            sudo pacman -S --noconfirm openssh
+            run_cmd "sudo pacman -S --noconfirm openssh"
             ;;
         debian)
-            sudo apt update 6& sudo apt install -y openssh-server
+            run_cmd "sudo apt update 6& sudo apt install -y openssh-server"
             ;;
         rhel)
-            sudo dnf install -y openssh-server
+            run_cmd "sudo dnf install -y openssh-server"
             ;;
         *)
             log_error "Cannot install SSH: unsupported distro"
@@ -72,7 +72,7 @@ restart_ssh(){
     log_info "Restarting SSH service..."
 
     if command -v systemctl &> /dev/null; then
-        sudo systemctl restart sshd 2>/dev/null || sudo systemctl restart ssh
+        run_cmd "sudo systemctl restart sshd 2>/dev/null || sudo systemctl restart ssh"
     else
         log_warn "systemctl not available, skipping SSH restart"
     fi
