@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Ensure SCRIPT_DIR exist
+: "${SCRIPT_DIR:?SCRIPT_DIR is not set}"
+
 #Log file
 LOG_FILE="$SCRIPT_DIR/logs/hardening.log"
 
@@ -10,22 +13,36 @@ init_logger(){
 
 _log(){
     local level="$1"
-    local message="$2"
+    shift
+    local message="$*"
     local timestamp
 
     timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
 
-    echo "[$timestamp] [$level] $message" | tee -a "$LOG_FILE"
+    local log_entry="[$timestamp] [$level] $message"
+
+    # Allways write to file
+    echo "$log_entry" >> "$LOG_FILE"
+
+    # Print to console
+    case "$level" in
+        ERROR)
+            echo "$log_entry" >&2
+            ;;
+        *)
+            echo "$log_entry"
+            ;;
+    esac
 }
 
 log_info(){
-    _log "INFO" "$1"
+    _log "INFO" "$@"
 }
 
 log_warn(){
-    _log "WARN" "$1"
+    _log "WARN" "$@"
 }
 
 log_error(){
-    _log "ERROR" "$1"
+    _log "ERROR" "$@"
 }
