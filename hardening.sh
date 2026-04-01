@@ -5,11 +5,11 @@ echo "=== Linux Hardening Toolkit ==="
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Default flags
-RUN_UPDATES=true
-RUN_SSH=true
-RUN_FIREWALL=true
-RUN_SYSCTL=true
-RUN_SERVICES=true
+RUN_UPDATES=${ENABLE_UPDATES: -true}
+RUN_SSH=${ENABLE_SSH: -true}
+RUN_FIREWALL=${ENABLE_FIREWALL: -true}
+RUN_SYSCTL=${ENABLE_SYSCTL: -true}
+RUN_SERVICES=${ENABLE_SERVICES: -true}
 DRY_RUN=false
 
 # Argument parser
@@ -69,6 +69,35 @@ source "$SCRIPT_DIR/modules/core/utils.sh"
 # Init logger
 init_logger
 log_info "Starting hardening process"
+
+CONFIG_FILE="$SCRIPT_DIR/config/default.conf"
+if [ -f "$CONFIG_FILE" ]; then
+    source "$CONFIG_FILE"
+    log_info "Loaded configuration from $CONFIG_FILE"
+else
+    log_warn "Config file not found, using defaults"
+fi
+
+apply_profile(){
+    case "$PROFILE" in
+        server)
+            log_info "Applying server profile"
+
+            RUN_SERVICES=true
+            RUN_FIREWALL=true
+            ;;
+        desktop)
+            log_info "Applying desktop profile"
+
+            RUN_SERVICES=false
+            ;;
+        *)
+            log_warn "Unknown profile: $PROFILE"
+            ;;
+    esac
+}
+
+apply_profile
 
 # Detect distro
 detect_distro
