@@ -1,6 +1,6 @@
 # Linux Hardening Toolkit
 
-A modular Bash-based toolkit to apply basic security hardening on fresh Linux systems.
+A modular Linux hardening toolkit designed to secure fresh systems with minimal effort and maximum control.
 
 ## Features
 
