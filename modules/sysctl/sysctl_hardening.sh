@@ -5,13 +5,18 @@ SYSCTL_FILE="/etc/sysctl.d/99-hardening.conf"
 apply_sysctl_setting(){
     log_info "Applying sysctl hardening settings..."
 
+    if [ "${DRY_RUN:-false}" = true ];then
+        log_info "[DRY-RUN] Writing sysctl config to $SYSCTL_FILE"
+        return 0 
+    fi
+
     sudo tee "$SYSCTL_FILE" > /dev/null <<EOF
 # IP spoofing protection
 net.ipv4.conf.all.rp_filter = 1
 net.ipv4.conf.default.rp_filter = 1
 
-# Ignore ICMP breadcast request
-net.ipv4.icmp_echo_ignore_broadcast = 1
+# Ignore ICMP broadcast requests
+net.ipv4.icmp_echo_ignore_broadcasts = 1
 
 # Disable source packet routing
 net.ipv4.conf.all.accept_source_route = 0
@@ -38,7 +43,8 @@ EOF
 apply_sysctl_runtime(){
     log_info "Reloading sysctl settings..."
 
-    sudo sysctl --system
+    run_cmd sudo sysctl --system \
+        || { log_error "Failed to apply sysctl settings"; exit 1; }
 
     log_info "Sysctl settings applied"
 }
