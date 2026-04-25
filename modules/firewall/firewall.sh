@@ -63,7 +63,7 @@ configure_firewalld(){
 
     # Reload rules
     run_cmd sudo firewall-cmd --reload \
-        || { log_error "Failed to reload firewall rules"; rxit 1; }
+        || { log_error "Failed to reload firewall rules"; exit 1; }
 
     log_info "firewalld configured and running" 
 }
