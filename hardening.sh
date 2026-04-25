@@ -53,9 +53,40 @@ apply_profile(){
     esac
 }
 
+show_help(){
+    cat << EOF
+Usage: $(basename "$0") [OPTIONS]
+
+Options:
+  --dry-run              Simulate execution without applying changes
+  --only <module>        Run only the specified module
+  --no-updates           Skip system updates
+  --no-ssh               Skip SSH hardening
+  --no-firewall          Skip firewall configuration
+  --no-sysctl            Skip kernel hardening
+  --no-services          Skip service minimization
+  --help                 Show this help message
+
+Modules:
+    updates. ssh, firewall, sysctl, services
+
+Profiles (set in configs/default.conf):
+    server              Enables firewall and service minimization
+    desktop             Disables service minimization
+
+Examples:
+
+    $(basename "$0") --dry-run
+    $(basename "$0") --only-ssh
+    $(basename "$0") --no-firewall --no-services
+EOF
+    exit 0
+}
+
 # Argument parser
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        --help) show_help ;;
         --no-updates) RUN_UPDATES=false ;;
         --no-ssh) RUN_SSH=false ;;
         --no-firewall) RUN_FIREWALL=false ;;
