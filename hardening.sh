@@ -60,7 +60,7 @@ while [[ $# -gt 0 ]]; do
         --no-firewall) RUN_FIREWALL=false ;;
         --no-sysctl) RUN_SYSCTL=false ;;
         --no-services) RUN_SERVICES=false ;;
-        
+
         --only)
             shift
             RUN_UPDATES=false
@@ -92,7 +92,6 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-
 apply_profile
 
 # Detect distro
@@ -101,7 +100,7 @@ detect_distro
 log_info "Detected distro: $DISTRO"
 log_info "Distro Family: $DISTRO_FAMILY"
 
-# Execution path
+# Execution plan
 log_info "Execution plan"
 log_info "Updates: $RUN_UPDATES"
 log_info "SSH: $RUN_SSH"
@@ -110,17 +109,12 @@ log_info "Sysctl: $RUN_SYSCTL"
 log_info "Services: $RUN_SERVICES"
 log_info "Dry-run: $DRY_RUN"
 
-# Load modules
-source "$SCRIPT_DIR/modules/updates/arch.sh"
-source "$SCRIPT_DIR/modules/updates/debian.sh"
-source "$SCRIPT_DIR/modules/updates/rhel.sh"
-
-source "$SCRIPT_DIR/modules/ssh/ssh_hardening.sh"
-source "$SCRIPT_DIR/modules/firewall/firewall.sh"
-source "$SCRIPT_DIR/modules/sysctl/sysctl_hardening.sh"
-source "$SCRIPT_DIR/modules/services/services_hardening.sh"
-
+# Updates
 if [ "$RUN_UPDATES" = true ]; then
+    source "$SCRIPT_DIR/modules/updates/arch.sh"
+    source "$SCRIPT_DIR/modules/updates/debian.sh"
+    source "$SCRIPT_DIR/modules/updates/rhel.sh"
+
     case "$DISTRO_FAMILY" in
         arch)
             update_arch
@@ -138,9 +132,9 @@ if [ "$RUN_UPDATES" = true ]; then
     esac
 fi
 
-
-#SSH Hardening
+# SSH Hardening
 if [ "$RUN_SSH" = true ]; then
+    source "$SCRIPT_DIR/modules/ssh/ssh_hardening.sh"
     install_ssh
     generate_ssh_keys
     backup_ssh_config
@@ -151,16 +145,19 @@ fi
 
 # Firewall
 if [ "$RUN_FIREWALL" = true ]; then
+    source "$SCRIPT_DIR/modules/firewall/firewall.sh"
     setup_firewall
 fi
 
 # Sysctl Hardening
 if [ "$RUN_SYSCTL" = true ]; then
+    source "$SCRIPT_DIR/modules/sysctl/sysctl_hardening.sh"
     setup_sysctl
 fi
 
 # Services Hardening
 if [ "$RUN_SERVICES" = true ]; then
+    source "$SCRIPT_DIR/modules/services/services_hardening.sh"
     setup_services
 fi
 
