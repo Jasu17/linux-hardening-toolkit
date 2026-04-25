@@ -9,6 +9,18 @@ LOG_FILE="$SCRIPT_DIR/logs/hardening.log"
 init_logger(){
     mkdir -p "$(dirname "$LOG_FILE")"
     touch "$LOG_FILE"
+
+    # Rotate if log exceeds 1MB
+    if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 1048576 ]; then
+        mv "$LOG_FILE" "${LOG_FILE}.$(date +%Y%m%d%H%M%S).bak"
+        touch "$LOG_FILE"
+    fi
+
+    echo "" >> "$LOG_FILE"
+    echo "=============================================" >> "$LOG_FILE"
+    echo "   Session started: $(date '+%Y-%m-%d %H:%M:%S')" >> "$LOG_FILE"
+    echo "   User: $(whoami)  Host: $(hostname)" >> "$LOG_FILE"
+    echo "=============================================" >> "$LOG_FILE"
 }
 
 _log(){
