@@ -15,6 +15,7 @@ check_privileges
 
 # Default values
 RUN_UPDATES=true
+RUN_USERS=true
 RUN_SSH=true
 RUN_FIREWALL=true
 RUN_SYSCTL=true
@@ -28,6 +29,7 @@ if [ -f "$CONFIG_FILE" ]; then
     log_info "Loaded configuration from $CONFIG_FILE"
 
     RUN_UPDATES=${ENABLE_UPDATES:-true}
+    RUN_USERS=${ENABLE_USERS:-true}
     RUN_SSH=${ENABLE_SSH:-true}
     RUN_FIREWALL=${ENABLE_FIREWALL:-true}
     RUN_SYSCTL=${ENABLE_SYSCTL:-true}
@@ -41,11 +43,13 @@ apply_profile(){
         server)
             log_info "Applying server profile"
             RUN_SERVICES=true
+            RUN_USERS=true
             RUN_FIREWALL=true
             ;;
         desktop)
             log_info "Applying desktop profile"
             RUN_SERVICES=false
+            RUN_USERS=true
             ;;
         *)
             log_warn "Unknown profile: $PROFILE"
@@ -60,6 +64,7 @@ Usage: $(basename "$0") [OPTIONS]
 Options:
   --dry-run              Simulate execution without applying changes
   --only <module>        Run only the specified module
+  --no-users             Skip user account hardening
   --no-updates           Skip system updates
   --no-ssh               Skip SSH hardening
   --no-firewall          Skip firewall configuration
@@ -68,7 +73,7 @@ Options:
   --help                 Show this help message
 
 Modules:
-  updates, ssh, firewall, sysctl, services
+  updates, ssh, firewall, sysctl, services, users
 
 Profiles (set in configs/default.conf):
   server                 Enables firewall and service minimization
@@ -97,6 +102,7 @@ print_summary(){
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --help) show_help ;;
+        --no-users) RUN_USERS=false ;;
         --no-updates) RUN_UPDATES=false ;;
         --no-ssh) RUN_SSH=false ;;
         --no-firewall) RUN_FIREWALL=false ;;
@@ -110,6 +116,7 @@ while [[ $# -gt 0 ]]; do
             RUN_FIREWALL=false
             RUN_SYSCTL=false
             RUN_SERVICES=false
+            RUN_USERS=false
 
             case "$1" in
                 updates) RUN_UPDATES=true ;;
@@ -117,6 +124,7 @@ while [[ $# -gt 0 ]]; do
                 firewall) RUN_FIREWALL=true ;;
                 sysctl) RUN_SYSCTL=true ;;
                 services) RUN_SERVICES=true ;;
+                users) RUN_USERS=true ;;
                 *)
                     log_error "Unknown module: $1"
                     exit 1
@@ -149,6 +157,7 @@ log_info "SSH: $RUN_SSH"
 log_info "Firewall: $RUN_FIREWALL"
 log_info "Sysctl: $RUN_SYSCTL"
 log_info "Services: $RUN_SERVICES"
+log_info "Users: $RUN_USERS"
 log_info "Dry-run: $DRY_RUN"
 
 declare -A MODULE_STATUS
@@ -214,6 +223,14 @@ if [ "$RUN_SERVICES" = true ]; then
     setup_services && MODULE_STATUS[services]="OK" || MODULE_STATUS[services]="FAILED"
 else
     MODULE_STATUS[services]="SKIPPED"
+fi
+
+# Users Hardening
+if [ "$RUN_USERS" = true ]; then
+    source "$SCRIPT_DIR/modules/users/users_hardening.sh"
+    setup_users && MODULE_STATUS[users]="OK" || MODULE_STATUS[users]="FAILED"
+else
+    MODULE_STATUS[users]="SKIPPED"
 fi
 
 print_summary
