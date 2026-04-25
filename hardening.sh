@@ -54,7 +54,7 @@ apply_profile(){
 }
 
 show_help(){
-    cat << EOF
+    cat <<EOF
 Usage: $(basename "$0") [OPTIONS]
 
 Options:
@@ -68,19 +68,29 @@ Options:
   --help                 Show this help message
 
 Modules:
-    updates. ssh, firewall, sysctl, services
+  updates, ssh, firewall, sysctl, services
 
 Profiles (set in configs/default.conf):
-    server              Enables firewall and service minimization
-    desktop             Disables service minimization
+  server                 Enables firewall and service minimization
+  desktop                Disables service minimization
 
 Examples:
-
-    $(basename "$0") --dry-run
-    $(basename "$0") --only-ssh
-    $(basename "$0") --no-firewall --no-services
+  $(basename "$0") --dry-run
+  $(basename "$0") --only ssh
+  $(basename "$0") --no-firewall --no-services
 EOF
     exit 0
+}
+
+print_summary(){
+    log_info "======================================"
+    log_info "  Hardening Summary"
+    log_info "======================================"
+    for module in updates ssh firewall sysctl services; do
+        local status="${MODULE_STATUS[$module]:-SKIPPED}"
+        log_info "  $(printf '%-12s' "$module") $status"
+    done
+    log_info "======================================"
 }
 
 # Argument parser
@@ -141,6 +151,8 @@ log_info "Sysctl: $RUN_SYSCTL"
 log_info "Services: $RUN_SERVICES"
 log_info "Dry-run: $DRY_RUN"
 
+declare -A MODULE_STATUS
+
 # Updates
 if [ "$RUN_UPDATES" = true ]; then
     source "$SCRIPT_DIR/modules/updates/arch.sh"
@@ -149,19 +161,22 @@ if [ "$RUN_UPDATES" = true ]; then
 
     case "$DISTRO_FAMILY" in
         arch)
-            update_arch
+            update_arch && MODULE_STATUS[updates]="OK" || MODULE_STATUS[updates]="FAILED"
             ;;
         debian|ubuntu)
-            update_debian
+            update_debian && MODULE_STATUS[updates]="OK" || MODULE_STATUS[updates]="FAILED"
             ;;
         rhel)
-            update_rhel
+            update_rhel && MODULE_STATUS[updates]="OK" || MODULE_STATUS[updates]="FAILED"
             ;;
         *)
             log_error "Unsupported distro for updates: $DISTRO"
+            MODULE_STATUS[updates]="FAILED"
             exit 1
             ;;
     esac
+else
+    MODULE_STATUS[updates]="SKIPPED"
 fi
 
 # SSH Hardening
@@ -172,25 +187,33 @@ if [ "$RUN_SSH" = true ]; then
     backup_ssh_config
     apply_ssh_hardening
     validate_ssh_config
-    restart_ssh
+    restart_ssh && MODULE_STATUS[ssh]="OK" || MODULE_STATUS[ssh]="FAILED"
+else
+    MODULE_STATUS[ssh]="SKIPPED"
 fi
 
 # Firewall
 if [ "$RUN_FIREWALL" = true ]; then
     source "$SCRIPT_DIR/modules/firewall/firewall.sh"
-    setup_firewall
+    setup_firewall && MODULE_STATUS[firewall]="OK" || MODULE_STATUS[firewall]="FAILED"
+else
+    MODULE_STATUS[firewall]="SKIPPED"
 fi
 
 # Sysctl Hardening
 if [ "$RUN_SYSCTL" = true ]; then
     source "$SCRIPT_DIR/modules/sysctl/sysctl_hardening.sh"
-    setup_sysctl
+    setup_sysctl && MODULE_STATUS[sysctl]="OK" || MODULE_STATUS[sysctl]="FAILED"
+else
+    MODULE_STATUS[sysctl]="SKIPPED"
 fi
 
 # Services Hardening
 if [ "$RUN_SERVICES" = true ]; then
     source "$SCRIPT_DIR/modules/services/services_hardening.sh"
-    setup_services
+    setup_services && MODULE_STATUS[services]="OK" || MODULE_STATUS[services]="FAILED"
+else
+    MODULE_STATUS[services]="SKIPPED"
 fi
 
-log_info "Hardening process completed"
+print_summary
