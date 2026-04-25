@@ -15,11 +15,12 @@ check_privileges
 
 # Default values
 RUN_UPDATES=true
-RUN_USERS=true
 RUN_SSH=true
 RUN_FIREWALL=true
 RUN_SYSCTL=true
 RUN_SERVICES=true
+RUN_USERS=true
+RUN_AUDIT=true
 DRY_RUN=false
 
 CONFIG_FILE="$SCRIPT_DIR/configs/default.conf"
@@ -29,11 +30,12 @@ if [ -f "$CONFIG_FILE" ]; then
     log_info "Loaded configuration from $CONFIG_FILE"
 
     RUN_UPDATES=${ENABLE_UPDATES:-true}
-    RUN_USERS=${ENABLE_USERS:-true}
     RUN_SSH=${ENABLE_SSH:-true}
     RUN_FIREWALL=${ENABLE_FIREWALL:-true}
     RUN_SYSCTL=${ENABLE_SYSCTL:-true}
     RUN_SERVICES=${ENABLE_SERVICES:-true}
+    RUN_USERS=${ENABLE_USERS:-true}
+    RUN_AUDIT=${ENABLE_AUDIT:-true}
 else
     log_warn "Config file not found, using defaults"
 fi
@@ -42,14 +44,16 @@ apply_profile(){
     case "$PROFILE" in
         server)
             log_info "Applying server profile"
-            RUN_SERVICES=true
             RUN_USERS=true
+            RUN_SERVICES=true
             RUN_FIREWALL=true
+            RUN_AUDIT=true
             ;;
         desktop)
             log_info "Applying desktop profile"
-            RUN_SERVICES=false
             RUN_USERS=true
+            RUN_SERVICES=false
+            RUN_AUDIT=false
             ;;
         *)
             log_warn "Unknown profile: $PROFILE"
@@ -64,20 +68,21 @@ Usage: $(basename "$0") [OPTIONS]
 Options:
   --dry-run              Simulate execution without applying changes
   --only <module>        Run only the specified module
-  --no-users             Skip user account hardening
   --no-updates           Skip system updates
   --no-ssh               Skip SSH hardening
   --no-firewall          Skip firewall configuration
   --no-sysctl            Skip kernel hardening
   --no-services          Skip service minimization
+  --no-users             Skip user hardening
+  --no-audit             Skip audit hardening
   --help                 Show this help message
 
 Modules:
-  updates, ssh, firewall, sysctl, services, users
+  updates, ssh, firewall, sysctl, services, users, audit
 
 Profiles (set in configs/default.conf):
-  server                 Enables firewall and service minimization
-  desktop                Disables service minimization
+  server                 Enables all modules including audit
+  desktop                Enables user hardening, disables services and audit
 
 Examples:
   $(basename "$0") --dry-run
@@ -91,7 +96,7 @@ print_summary(){
     log_info "======================================"
     log_info "  Hardening Summary"
     log_info "======================================"
-    for module in updates ssh firewall sysctl services; do
+    for module in updates ssh firewall sysctl services users audit; do
         local status="${MODULE_STATUS[$module]:-SKIPPED}"
         log_info "  $(printf '%-12s' "$module") $status"
     done
@@ -102,12 +107,13 @@ print_summary(){
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --help) show_help ;;
-        --no-users) RUN_USERS=false ;;
         --no-updates) RUN_UPDATES=false ;;
         --no-ssh) RUN_SSH=false ;;
         --no-firewall) RUN_FIREWALL=false ;;
         --no-sysctl) RUN_SYSCTL=false ;;
         --no-services) RUN_SERVICES=false ;;
+        --no-users) RUN_USERS=false ;;
+        --no-audit) RUN_AUDIT=false ;;
 
         --only)
             shift
@@ -117,6 +123,7 @@ while [[ $# -gt 0 ]]; do
             RUN_SYSCTL=false
             RUN_SERVICES=false
             RUN_USERS=false
+            RUN_AUDIT=false
 
             case "$1" in
                 updates) RUN_UPDATES=true ;;
@@ -125,6 +132,7 @@ while [[ $# -gt 0 ]]; do
                 sysctl) RUN_SYSCTL=true ;;
                 services) RUN_SERVICES=true ;;
                 users) RUN_USERS=true ;;
+                audit) RUN_AUDIT=true ;;
                 *)
                     log_error "Unknown module: $1"
                     exit 1
@@ -158,6 +166,7 @@ log_info "Firewall: $RUN_FIREWALL"
 log_info "Sysctl: $RUN_SYSCTL"
 log_info "Services: $RUN_SERVICES"
 log_info "Users: $RUN_USERS"
+log_info "Audit: $RUN_AUDIT"
 log_info "Dry-run: $DRY_RUN"
 
 declare -A MODULE_STATUS
@@ -231,6 +240,14 @@ if [ "$RUN_USERS" = true ]; then
     setup_users && MODULE_STATUS[users]="OK" || MODULE_STATUS[users]="FAILED"
 else
     MODULE_STATUS[users]="SKIPPED"
+fi
+
+# Audit Hardening
+if [ "$RUN_AUDIT" = true ]; then
+    source "$SCRIPT_DIR/modules/audit/audit_hardening.sh"
+    setup_audit && MODULE_STATUS[audit]="OK" || MODULE_STATUS[audit]="FAILED"
+else
+    MODULE_STATUS[audit]="SKIPPED"
 fi
 
 print_summary
