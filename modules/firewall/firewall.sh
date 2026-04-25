@@ -16,7 +16,7 @@ install_firewall(){
                     || { log_error "Failed to install ufw"; exit 1; }
                 FIREWALL="ufw"
                 ;;
-            debian)
+            debian|ubuntu)
                 run_cmd sudo apt update \
                     || { log_error "apt update failed"; exit 1; } 
                 run_cmd sudo apt install -y ufw \

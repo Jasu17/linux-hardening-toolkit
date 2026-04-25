@@ -14,7 +14,7 @@ install_ssh(){
         arch)
             run_cmd sudo pacman -S --noconfirm openssh
             ;;
-        debian)
+        debian|ubuntu)
             run_cmd sudo apt update \
             || { log_error "apt update failed"; exit 1; }
             run_cmd sudo apt install -y openssh-server
