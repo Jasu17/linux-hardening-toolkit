@@ -5,12 +5,8 @@ SYSCTL_FILE="/etc/sysctl.d/99-hardening.conf"
 apply_sysctl_setting(){
     log_info "Applying sysctl hardening settings..."
 
-    if [ "${DRY_RUN:-false}" = true ];then
-        log_info "[DRY-RUN] Writing sysctl config to $SYSCTL_FILE"
-        return 0 
-    fi
+    run_cmd sudo tee "$SYSCTL_FILE" > /dev/null <<EOF
 
-    sudo tee "$SYSCTL_FILE" > /dev/null <<EOF
 # IP spoofing protection
 net.ipv4.conf.all.rp_filter = 1
 net.ipv4.conf.default.rp_filter = 1
