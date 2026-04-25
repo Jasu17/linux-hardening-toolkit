@@ -40,7 +40,7 @@ install_firewall(){
 configure_ufw(){
     log_info "Configuring UFW..."
 
-    run_cmd sudo ufw default deny incomming
+    run_cmd sudo ufw default deny incoming
     run_cmd sudo ufw default allow outgoing
 
     # Allow SSH (critical)
