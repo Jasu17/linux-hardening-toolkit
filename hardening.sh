@@ -11,6 +11,7 @@ source "$SCRIPT_DIR/modules/core/detect_distro.sh"
 # Init logger
 init_logger
 log_info "=== Linux Hardening Toolkit ==="
+check_privileges
 
 # Default values
 RUN_UPDATES=true
