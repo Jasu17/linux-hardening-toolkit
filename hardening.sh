@@ -52,8 +52,6 @@ apply_profile(){
     esac
 }
 
-apply_profile
-
 # Argument parser
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -94,6 +92,8 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
+
+apply_profile
 
 # Detect distro
 detect_distro
