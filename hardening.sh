@@ -20,7 +20,7 @@ RUN_SYSCTL=true
 RUN_SERVICES=true
 DRY_RUN=false
 
-CONFIG_FILE="$SCRIPT_DIR/configs/defailt.conf"
+CONFIG_FILE="$SCRIPT_DIR/configs/default.conf"
 
 if [ -f "$CONFIG_FILE" ]; then
     source "$CONFIG_FILE"
